@@ -115,6 +115,11 @@ const Board = (props) => {
         canvas.addEventListener('mouseup', endDrawing);
         canvas.addEventListener('mouseout', endDrawing);
 
+        // For Touchscreen devices
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', endDrawing);
+
 
         return () => {
             // Clean up event listeners when component unmounts
@@ -122,6 +127,10 @@ const Board = (props) => {
             canvas.removeEventListener('mousemove', draw);
             canvas.removeEventListener('mouseup', endDrawing);
             canvas.removeEventListener('mouseout', endDrawing);
+
+            canvas.removeEventListener('touchstart', startDrawing);
+            canvas.removeEventListener('touchmove', draw);
+            canvas.removeEventListener('touchend', endDrawing);
         };
     }, [brushColor, brushSize]);
 

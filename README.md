@@ -128,3 +128,83 @@ To make our Canvas Responsive, we will fetch the width and height of our window,
         />
     );
 ```
+
+#### Liveblocks
+We modify our frontend client to use liveblocks as the backend. 
+
+Liveblocks is a hosted websockets service that is useful for realtime multiplayer apps
+
+Install Liveblocks
+```
+npm install @liveblocks/client @liveblocks/react
+```
+
+Create `liveblocks.config.ts` file
+```
+npx create-liveblocks-app@latest --init --framework react
+```
+
+Pass our public API key into `createClient`
+
+We need to create a room to host our multiplayer interactions. 
+
+In `App.jsx`
+- We create a room with a specific id using `<RoomProvider>`
+- We use `ClientSideSuspense` to show a loading screen when the connection loads
+- We wrap our existing code in between RoomProvider and ClientSideSuspense
+
+```jsx
+import { RoomProvider } from "../liveblocks.config";
+import { ClientSideSuspense } from "@liveblocks/react";
+
+<RoomProvider id="whiteboard" initialPresence={{}}>
+      <ClientSideSuspense fallback={<div>Loading…</div>}>
+      // Existing code must be returned as a function
+      {() => Existing Code Here }
+      </ClientSideSuspense>
+</RoomProvider>
+```
+
+In `board.jsx` we will broadcast events and use an Event Listener to respond and update the board accordingly. 
+
+```jsx
+import {
+    useBroadcastEvent,
+    useEventListener,
+  } from "../../liveblocks.config";
+
+const broadcast = useBroadcastEvent();
+
+// Event Listener
+useEventListener(({ event, user, connectionId }) => {
+        if (event.type === "canvasImage") {
+          // Create an image object from the data URL
+          const image = new Image();
+          image.src = event.value;
+          console.log(event.value)
+          console.log(user)
+
+
+          const canvas = canvasRef.current;
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+          const ctx = canvas.getContext('2d');
+          // Draw the image onto the canvas
+          image.onload = () => {
+              ctx.drawImage(image, 0, 0);
+          };
+        }
+      });
+
+    // Broadcast Image
+    const endDrawing = () => {
+            const canvas = canvasRef.current;
+            const dataURL = canvas.toDataURL(); // Get the data URL of the canvas content
+
+            // Send the dataURL or image data to the socket
+            broadcast({ type: "canvasImage", emoji: "🔥", value: dataURL })
+            console.log('drawing ended')
+
+            isDrawing = false;
+        };
+
+```

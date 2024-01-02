@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import io from 'socket.io-client';
+// import io from 'socket.io-client';
 import {
     useBroadcastEvent,
     useEventListener,
@@ -11,39 +11,8 @@ const Board = (props) => {
 
     const canvasRef = useRef(null);
 
-    const [socket, setSocket] = useState(null);
-
     const broadcast = useBroadcastEvent();
 
-    // Run once after canvas is rendered
-    // useEffect(() => {
-    //     const newSocket = io('http://localhost:5000');
-    //     console.log(newSocket, "Connected to socket");
-    //     setSocket(newSocket);
-    // }, []);
-
-    // Run when the socket state changes
-    // Used to update the canvas image
-    // useEffect(() => {
-
-    //     if (socket) {
-    //         // Event listener for receiving canvas data from the socket
-    //         socket.on('canvasImage', (data) => {
-    //             // Create an image object from the data URL
-    //             const image = new Image();
-    //             image.src = data;
-
-
-    //             const canvas = canvasRef.current;
-    //             // eslint-disable-next-line react-hooks/exhaustive-deps
-    //             const ctx = canvas.getContext('2d');
-    //             // Draw the image onto the canvas
-    //             image.onload = () => {
-    //                 ctx.drawImage(image, 0, 0);
-    //             };
-    //         });
-    //     }
-    // }, [socket]);
 
     useEventListener(({ event, user, connectionId }) => {
         if (event.type === "canvasImage") {
@@ -62,6 +31,14 @@ const Board = (props) => {
               ctx.drawImage(image, 0, 0);
           };
         }
+        if (event.type === "clearCanvas") {
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // reset clearCanvas state
+            setClearCanvas(false);
+  
+          }
       });
 
     // Drawing Logic
@@ -157,9 +134,8 @@ const Board = (props) => {
             // reset clearCanvas state
             setClearCanvas(false);
 
-            const dataURL = canvas.toDataURL(); // Get the data URL of the canvas content
             // Send the dataURL or image data to the socket
-            broadcast({ type: "canvasImage", emoji: "🔥", value: dataURL })
+            broadcast({ type: "clearCanvas", emoji: "🔥" })
             console.log('clear Canvas')
         }
         

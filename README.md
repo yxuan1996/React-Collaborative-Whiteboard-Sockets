@@ -66,7 +66,8 @@ useEffect(() => {
     }, [socket]);
 ```
 
-We modify our `endDrawing()` function to send our canvas image to our server after we stop drawing. 
+- We modify our `endDrawing()` function to send our canvas image to our server after we stop drawing. 
+- `canvas.toDataURL` converts our canvas image to a URL containing a png image. We can also specify our image format. 
 
 ```jsx
 const endDrawing = () => {
@@ -82,4 +83,48 @@ const endDrawing = () => {
             }
             isDrawing = false;
         };
+```
+
+#### Brush Color and Brush Size
+In `App.jsx` we create 2 states to manage the brush color and brush size properties. 
+
+We also create 2 inputs that control the brush color and brush size. When the inputs are changed, we set the states for brush color and brush size. 
+
+Lastly, we pass the 2 states as props into the Board component. 
+
+#### Responsive Canvas
+To make our Canvas Responsive, we will fetch the width and height of our window, and resize the canvas accordingly. 
+
+```JSX
+    const [windowSize, setWindowSize] = useState([
+        window.innerWidth,
+        window.innerHeight,
+    ]);
+
+
+    useEffect(() => {
+        const handleWindowResize = () => {
+            setWindowSize([window.innerWidth, window.innerHeight]);
+        };
+
+
+        window.addEventListener('resize', handleWindowResize);
+
+
+        return () => {
+            window.removeEventListener('resize', handleWindowResize);
+        };
+    }, []);
+
+
+
+
+    return (
+        <canvas
+            ref={canvasRef}
+            width={windowSize[0] > 600 ? 600 : 300}
+            height={windowSize[1] > 400 ? 400 : 200}
+            style={{ backgroundColor: 'white' }}
+        />
+    );
 ```

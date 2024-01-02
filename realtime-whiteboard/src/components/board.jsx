@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import io from 'socket.io-client';
 
-const Board = () => {
+const Board = (props) => {
+
+    const { brushColor, brushSize, clearCanvas, setClearCanvas } = props;
 
     const canvasRef = useRef(null);
 
@@ -48,7 +50,7 @@ const Board = () => {
 
         const startDrawing = (e) => {
             isDrawing = true;
-
+            console.log(`drawing started`, brushColor, brushSize);
 
             [lastX, lastY] = [e.offsetX, e.offsetY];
         };
@@ -95,8 +97,8 @@ const Board = () => {
 
         // Set initial drawing styles
         if (ctx) {
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 5;
+            ctx.strokeStyle = brushColor;
+            ctx.lineWidth = brushSize;
 
 
             ctx.lineCap = 'round';
@@ -118,14 +120,44 @@ const Board = () => {
             canvas.removeEventListener('mouseup', endDrawing);
             canvas.removeEventListener('mouseout', endDrawing);
         };
+    }, [brushColor, brushSize, socket]);
+
+    // function to clear canvas
+    useEffect(() => {
+        if (clearCanvas == true){
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // reset clearCanvas state
+            setClearCanvas(false);
+        }
+        
+    },[clearCanvas]);
+
+    // Get Current Window Size
+    const [windowSize, setWindowSize] = useState([
+        window.innerWidth,
+        window.innerHeight,
+    ]);
+
+    useEffect(() => {
+        const handleWindowResize = () => {
+            setWindowSize([window.innerWidth, window.innerHeight]);
+        };
+
+        window.addEventListener('resize', handleWindowResize);
+
+        return () => {
+            window.removeEventListener('resize', handleWindowResize);
+        };
     }, []);
 
 
     return (
         <canvas
             ref={canvasRef}
-            width={600}
-            height={400}
+            width={windowSize[0] > 600 ? 600 : 300}
+            height={windowSize[1] > 400 ? 400 : 200}
             style={{ backgroundColor: 'white' }}
         />
     );
